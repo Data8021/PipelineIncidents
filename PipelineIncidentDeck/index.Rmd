@@ -1,0 +1,94 @@
+---
+title       : Developing Data Products
+subtitle    : Pipeline Incidents in the U.S., Jan 2010 - Present
+author      : 
+job         : December 20, 2015
+framework   : io2012      # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+ext_widgets : {rCharts: libraries/nvd3}
+mode        : standalone    # {standalone, draft}
+knit        : slidify::knit2slides
+---
+
+## Course Project
+
+This presentation is being created as part of the course project of the Coursera's Developing Data Products course. This assignment is to demonstrate that the following concepts are understood by the students:
+
+* [shiny](http://shiny.rstudio.com/) to build data product application; and
+
+* [slidify](http://slidify.org/) to create data product related presentations.
+
+--- .class #id
+
+## The Application
+
+The increasing extraction of crude oil in the United States has been a subject much in the news.  Using [shiny](http://shiny.rstudio.com/) I built and [application](https://data8021.shinyapps.io/pipelineApp) that allows a user to explore incidents reported by pipeline operators who move crude oil, and other products.
+
+The application allows the user to:
+
+* See how the number of incidents has changed between 2010;
+
+* See how much product is spilled;
+
+* See how much property damage is caused by these spills; and
+
+* Compare incdients impacting different commodities.
+
+--- .class #id 
+
+## Data
+
+The information for this [application](https://data8021.shinyapps.io/pipelineApp) is drawn from incident data provided by the U.S. Department of Transportation's [Pipeline and Hazardous Material Safety Administration](http://www.phmsa.dot.gov/). The following code was uesd to ingest the data:
+
+```{r, eval=FALSE}
+## Identify file to download
+urlName <- "http://www.phmsa.dot.gov/staticfiles/PHMSA/DownloadableFiles/Files/Pipeline/data/accident_hazardous_liquid_jan2010_present.zip"
+fileName <- "pipelineIncidents.zip"
+
+## Download file and unzip
+download.file(urlName, fileName)
+unzip("pipelineIncidents.zip")
+
+## Read data file
+data <- read.delim("accident_hazardous_liquid_jan2010_present.txt",
+                   header=TRUE, stringsAsFactors = FALSE, skipNul=TRUE)
+```
+
+--- .class #id 
+
+## Processing
+
+Multiple processing steps were necessary to get this data conidtioned and ready to analyze, including selecting the variables necessary for further analysis, shortening the names of commodities for ease of reading on the subsequent charts, and modifying variable classes. The last step of getting the data aggregated and summarized is included below:
+
+```{r, eval=FALSE}
+required(dplyr)
+by_commodityYear <- group_by(subData, year, commodity)
+incidents <- summarise(by_commodityYear,
+                       numIncidents=n(),
+                       totalBarrels = sum(barrelsReleased, na.rm=TRUE),
+                       totalFatalities = sum(fatalities, na.rm=TRUE),
+                       totalInjuries = sum(injuries, na.rm=TRUE),
+                       totalPropertyDamage = sum(propDamage, na.rm=TRUE))
+```
+
+--- .class #id 
+
+## Results and Application
+
+The [application](https://data8021.shinyapps.io/pipelineApp) allows the user to explore the aggregated data and look specifically at incidents of differnt commodities.  The charts in the application are derived from the summary chart listed below showing the number of incidents of differnt commodity types since January 2010.
+
+```{r nvd3plot2, results = 'asis', comment = NA, message = F, echo = F} 
+library(rCharts)
+library(knitr)
+incidents <- read.csv("incidentData.csv")
+incidentChart <- nPlot(numIncidents ~ year, data = incidents,
+                      group="commodity", 
+                      color="commodity", 
+                      type = "lineChart")
+incidentChart$chart(margin = list(left = 100))
+incidentChart$yAxis(axisLabel = "Total Number of Incidents")
+incidentChart$xAxis(axisLabel = "Year")
+incidentChart$show('inline', include_assets = TRUE, cdn = TRUE)
+```
+

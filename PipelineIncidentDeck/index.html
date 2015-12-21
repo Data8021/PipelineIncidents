@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Developing Data Products</title>
+  <meta charset="utf-8">
+  <meta name="description" content="Developing Data Products">
+  <meta name="author" content="">
+  <meta name="generator" content="slidify" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <link rel="stylesheet" href="http://slidifylibraries2.googlecode.com/git/inst/libraries/frameworks/io2012/css/default.css" media="all" >
+  <link rel="stylesheet" href="http://slidifylibraries2.googlecode.com/git/inst/libraries/frameworks/io2012/css/phone.css" 
+    media="only screen and (max-device-width: 480px)" >
+  <link rel="stylesheet" href="http://slidifylibraries2.googlecode.com/git/inst/libraries/frameworks/io2012/css/slidify.css" >
+  <link rel="stylesheet" href="http://slidifylibraries2.googlecode.com/git/inst/libraries/highlighters/highlight.js/css/tomorrow.css" />
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->  <link rel=stylesheet href="./assets/css/ribbons.css"></link>
+
+  
+  <!-- Grab CDN jQuery, fall back to local if offline -->
+  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
+  <script>window.jQuery || document.write('<script src="http://slidifylibraries2.googlecode.com/git/inst/libraries/widgets/quiz/js/jquery.js"><\/script>')</script> 
+  <script data-main="http://slidifylibraries2.googlecode.com/git/inst/libraries/frameworks/io2012/js/slides" 
+    src="http://slidifylibraries2.googlecode.com/git/inst/libraries/frameworks/io2012/js/require-1.0.8.min.js">
+  </script>
+  
+  
+
+</head>
+<body style="opacity: 0">
+  <slides class="layout-widescreen">
+    
+    <!-- LOGO SLIDE -->
+        <slide class="title-slide segue nobackground">
+  <hgroup class="auto-fadein">
+    <h1>Developing Data Products</h1>
+    <h2>Pipeline Incidents in the U.S., Jan 2010 - Present</h2>
+    <p><br/>December 20, 2015</p>
+  </hgroup>
+  <article></article>  
+</slide>
+    
+
+    <!-- SLIDES -->
+    <slide class="" id="slide-1" style="background:;">
+  <hgroup>
+    <h2>Course Project</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>This presentation is being created as part of the course project of the Coursera&#39;s Developing Data Products course. This assignment is to demonstrate that the following concepts are understood by the students:</p>
+
+<ul>
+<li><p><a href="http://shiny.rstudio.com/">shiny</a> to build data product application; and</p></li>
+<li><p><a href="http://slidify.org/">slidify</a> to create data product related presentations.</p></li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>The Application</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The increasing extraction of crude oil in the United States has been a subject much in the news.  Using <a href="http://shiny.rstudio.com/">shiny</a> I built and <a href="https://data8021.shinyapps.io/pipelineApp">application</a> that allows a user to explore incidents reported by pipeline operators who move crude oil, and other products.</p>
+
+<p>The application allows the user to:</p>
+
+<ul>
+<li><p>See how the number of incidents has changed between 2010;</p></li>
+<li><p>See how much product is spilled;</p></li>
+<li><p>See how much property damage is caused by these spills; and</p></li>
+<li><p>Compare incdients impacting different commodities.</p></li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>Data</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The information for this <a href="https://data8021.shinyapps.io/pipelineApp">application</a> is drawn from incident data provided by the U.S. Department of Transportation&#39;s <a href="http://www.phmsa.dot.gov/">Pipeline and Hazardous Material Safety Administration</a>. The following code was uesd to ingest the data:</p>
+
+<pre><code class="r">## Identify file to download
+urlName &lt;- &quot;http://www.phmsa.dot.gov/staticfiles/PHMSA/DownloadableFiles/Files/Pipeline/data/accident_hazardous_liquid_jan2010_present.zip&quot;
+fileName &lt;- &quot;pipelineIncidents.zip&quot;
+
+## Download file and unzip
+download.file(urlName, fileName)
+unzip(&quot;pipelineIncidents.zip&quot;)
+
+## Read data file
+data &lt;- read.delim(&quot;accident_hazardous_liquid_jan2010_present.txt&quot;,
+                   header=TRUE, stringsAsFactors = FALSE, skipNul=TRUE)
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>Processing</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Multiple processing steps were necessary to get this data conidtioned and ready to analyze, including selecting the variables necessary for further analysis, shortening the names of commodities for ease of reading on the subsequent charts, and modifying variable classes. The last step of getting the data aggregated and summarized is included below:</p>
+
+<pre><code class="r">required(dplyr)
+by_commodityYear &lt;- group_by(subData, year, commodity)
+incidents &lt;- summarise(by_commodityYear,
+                       numIncidents=n(),
+                       totalBarrels = sum(barrelsReleased, na.rm=TRUE),
+                       totalFatalities = sum(fatalities, na.rm=TRUE),
+                       totalInjuries = sum(injuries, na.rm=TRUE),
+                       totalPropertyDamage = sum(propDamage, na.rm=TRUE))
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>Results and Application</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The <a href="https://data8021.shinyapps.io/pipelineApp">application</a> allows the user to explore the aggregated data and look specifically at incidents of differnt commodities.  The charts in the application are derived from the summary chart listed below showing the number of incidents of differnt commodity types since January 2010.</p>
+
+<p><link rel='stylesheet' href=//cdnjs.cloudflare.com/ajax/libs/nvd3/1.1.15-beta/nv.d3.min.css></p>
+
+<script type='text/javascript' src=//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js></script>
+
+<script type='text/javascript' src=//d3js.org/d3.v3.min.js></script>
+
+<script type='text/javascript' src=//cdnjs.cloudflare.com/ajax/libs/nvd3/1.1.15-beta/nv.d3.min.js></script>
+
+<script type='text/javascript' src=//nvd3.org/assets/lib/fisheye.js></script> 
+
+<p><style>
+  .rChart {
+    display: block;
+    margin-left: auto; 
+    margin-right: auto;
+    width: 800px;
+    height: 400px;
+  }<br>
+  </style></p>
+
+<div id = 'chart1ec07ef556cc' class = 'rChart nvd3'></div>
+
+<script type='text/javascript'>
+ $(document).ready(function(){
+      drawchart1ec07ef556cc()
+    });
+    function drawchart1ec07ef556cc(){  
+      var opts = {
+ "dom": "chart1ec07ef556cc",
+"width":    800,
+"height":    400,
+"x": "year",
+"y": "numIncidents",
+"group": "commodity",
+"color": "commodity",
+"type": "lineChart",
+"id": "chart1ec07ef556cc" 
+},
+        data = [
+ {
+ "X": 1,
+"year": 2010,
+"commodity": "CO2 (CARBON DIOXIDE)",
+"numIncidents": 6,
+"totalBarrels":         329.18,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 213 
+},
+{
+ "X": 2,
+"year": 2010,
+"commodity": "CRUDE OIL",
+"numIncidents": 156,
+"totalBarrels":       52716.75,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 1033494 
+},
+{
+ "X": 3,
+"year": 2010,
+"commodity": "HIGHLY VOLATILE LIQUID",
+"numIncidents": 63,
+"totalBarrels":       39939.18,
+"totalFatalities": 1,
+"totalInjuries": 1,
+"totalPropertyDamage": 10566 
+},
+{
+ "X": 4,
+"year": 2010,
+"commodity": "REFINED/PETROLEUM PRODUCT (NON-HVL)",
+"numIncidents": 125,
+"totalBarrels":        7573.29,
+"totalFatalities": 0,
+"totalInjuries": 2,
+"totalPropertyDamage": 30922 
+},
+{
+ "X": 5,
+"year": 2011,
+"commodity": "CO2 (CARBON DIOXIDE)",
+"numIncidents": 4,
+"totalBarrels":        2541.76,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 169 
+},
+{
+ "X": 6,
+"year": 2011,
+"commodity": "CRUDE OIL",
+"numIncidents": 147,
+"totalBarrels":       35358.56,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 185259 
+},
+{
+ "X": 7,
+"year": 2011,
+"commodity": "HIGHLY VOLATILE LIQUID",
+"numIncidents": 72,
+"totalBarrels":       27859.56,
+"totalFatalities": 1,
+"totalInjuries": 2,
+"totalPropertyDamage": 8319 
+},
+{
+ "X": 8,
+"year": 2011,
+"commodity": "REFINED/PETROLEUM PRODUCT (NON-HVL)",
+"numIncidents": 123,
+"totalBarrels":       23351.43,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 79786 
+},
+{
+ "X": 9,
+"year": 2012,
+"commodity": "CO2 (CARBON DIOXIDE)",
+"numIncidents": 2,
+"totalBarrels":          19.03,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 6 
+},
+{
+ "X": 10,
+"year": 2012,
+"commodity": "CRUDE OIL",
+"numIncidents": 189,
+"totalBarrels":        15025.3,
+"totalFatalities": 3,
+"totalInjuries": 4,
+"totalPropertyDamage": 46870 
+},
+{
+ "X": 11,
+"year": 2012,
+"commodity": "HIGHLY VOLATILE LIQUID",
+"numIncidents": 41,
+"totalBarrels":       21436.56,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 4458 
+},
+{
+ "X": 12,
+"year": 2012,
+"commodity": "REFINED/PETROLEUM PRODUCT (NON-HVL)",
+"numIncidents": 134,
+"totalBarrels":        9402.96,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 93577 
+},
+{
+ "X": 13,
+"year": 2013,
+"commodity": "CO2 (CARBON DIOXIDE)",
+"numIncidents": 5,
+"totalBarrels":          51.53,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 184 
+},
+{
+ "X": 14,
+"year": 2013,
+"commodity": "CRUDE OIL",
+"numIncidents": 205,
+"totalBarrels":       43047.61,
+"totalFatalities": 0,
+"totalInjuries": 6,
+"totalPropertyDamage": 193263 
+},
+{
+ "X": 15,
+"year": 2013,
+"commodity": "HIGHLY VOLATILE LIQUID",
+"numIncidents": 57,
+"totalBarrels":       61882.75,
+"totalFatalities": 1,
+"totalInjuries": 0,
+"totalPropertyDamage": 29969 
+},
+{
+ "X": 16,
+"year": 2013,
+"commodity": "REFINED/PETROLEUM PRODUCT (NON-HVL)",
+"numIncidents": 134,
+"totalBarrels":       12485.05,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 55024 
+},
+{
+ "X": 17,
+"year": 2014,
+"commodity": "BIOFUELS",
+"numIncidents": 1,
+"totalBarrels":            3.5,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 1 
+},
+{
+ "X": 18,
+"year": 2014,
+"commodity": "CO2 (CARBON DIOXIDE)",
+"numIncidents": 4,
+"totalBarrels":         2188.8,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 31 
+},
+{
+ "X": 19,
+"year": 2014,
+"commodity": "CRUDE OIL",
+"numIncidents": 233,
+"totalBarrels":       17847.78,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 57871 
+},
+{
+ "X": 20,
+"year": 2014,
+"commodity": "HIGHLY VOLATILE LIQUID",
+"numIncidents": 50,
+"totalBarrels":       10879.37,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 30819 
+},
+{
+ "X": 21,
+"year": 2014,
+"commodity": "REFINED/PETROLEUM PRODUCT (NON-HVL)",
+"numIncidents": 157,
+"totalBarrels":       16377.82,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 41086 
+},
+{
+ "X": 22,
+"year": 2015,
+"commodity": "CO2 (CARBON DIOXIDE)",
+"numIncidents": 4,
+"totalBarrels":           72.8,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 43 
+},
+{
+ "X": 23,
+"year": 2015,
+"commodity": "CRUDE OIL",
+"numIncidents": 212,
+"totalBarrels":       16595.09,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 178766 
+},
+{
+ "X": 24,
+"year": 2015,
+"commodity": "HIGHLY VOLATILE LIQUID",
+"numIncidents": 54,
+"totalBarrels":       73620.32,
+"totalFatalities": 1,
+"totalInjuries": 0,
+"totalPropertyDamage": 16050 
+},
+{
+ "X": 25,
+"year": 2015,
+"commodity": "REFINED/PETROLEUM PRODUCT (NON-HVL)",
+"numIncidents": 123,
+"totalBarrels":        6800.41,
+"totalFatalities": 0,
+"totalInjuries": 0,
+"totalPropertyDamage": 33948 
+} 
+]
+  
+      if(!(opts.type==="pieChart" || opts.type==="sparklinePlus" || opts.type==="bulletChart")) {
+        var data = d3.nest()
+          .key(function(d){
+            //return opts.group === undefined ? 'main' : d[opts.group]
+            //instead of main would think a better default is opts.x
+            return opts.group === undefined ? opts.y : d[opts.group];
+          })
+          .entries(data);
+      }
+      
+      if (opts.disabled != undefined){
+        data.map(function(d, i){
+          d.disabled = opts.disabled[i]
+        })
+      }
+      
+      nv.addGraph(function() {
+        var chart = nv.models[opts.type]()
+          .width(opts.width)
+          .height(opts.height)
+          
+        if (opts.type != "bulletChart"){
+          chart
+            .x(function(d) { return d[opts.x] })
+            .y(function(d) { return d[opts.y] })
+        }
+          
+         
+        chart
+  .margin({
+ "left":    100 
+})
+          
+        chart.xAxis
+  .axisLabel("Year")
+
+        
+        
+        chart.yAxis
+  .axisLabel("Total Number of Incidents")
+      
+       d3.select("#" + opts.id)
+        .append('svg')
+        .datum(data)
+        .transition().duration(500)
+        .call(chart);
+
+       nv.utils.windowResize(chart.update);
+       return chart;
+      });
+    };
+</script>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+    <slide class="backdrop"></slide>
+  </slides>
+  <div class="pagination pagination-small" id='io2012-ptoc' style="display:none;">
+    <ul>
+      <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=1 title='Course Project'>
+         1
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=2 title='The Application'>
+         2
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=3 title='Data'>
+         3
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=4 title='Processing'>
+         4
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=5 title='Results and Application'>
+         5
+      </a>
+    </li>
+  </ul>
+  </div>  <!--[if IE]>
+    <script 
+      src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js">  
+    </script>
+    <script>CFInstall.check({mode: 'overlay'});</script>
+  <![endif]-->
+</body>
+  <!-- Load Javascripts for Widgets -->
+  
+  <!-- LOAD HIGHLIGHTER JS FILES -->
+  <script src="http://slidifylibraries2.googlecode.com/git/inst/libraries/highlighters/highlight.js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <!-- DONE LOADING HIGHLIGHTER JS FILES -->
+   
+  </html>
